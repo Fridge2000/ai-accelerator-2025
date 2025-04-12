@@ -4,6 +4,7 @@ import torch.nn as nn
 import numpy as np
 import pandas as pd
 
+
 # Define the same model class
 class MultiLabelNN(nn.Module):
     def __init__(self, input_size, hidden_size, output_size):
@@ -55,17 +56,21 @@ if st.button("Predict Disease"):
         if symptom in selected_symptoms:
             input_vector[i] = 1
 
-    input_tensor = torch.tensor(input_vector, dtype=torch.float32).unsqueeze(0)
-    with torch.no_grad():
-        outputs = torch.sigmoid(model(input_tensor))
-        predictions = (outputs > 0.5).int().squeeze().tolist()
+    if not any(input_vector):
+        st.warning("Please select at least one symptom.")
+    else:
+        input_tensor = torch.tensor(input_vector, dtype=torch.float32).unsqueeze(0)
+        with torch.no_grad():
+            outputs = torch.sigmoid(model(input_tensor))
+            st.write("Raw prediction scores:", outputs.numpy())  # Debugging
+            predictions = (outputs > 0.02).int().squeeze().tolist()
 
-    st.subheader("Prediction Results:")
-    any_positive = False
-    for i, pred in enumerate(predictions):
-        if pred:
-            st.write(f"- {disease_labels[i]}")
-            any_positive = True
+        st.subheader("Prediction Results:")
+        any_positive = False
+        for i, pred in enumerate(predictions):
+            if pred:
+                st.write(f"- {disease_labels[i]}")
+                any_positive = True
 
-    if not any_positive:
-        st.write("No diseases predicted based on the selected symptoms.")
+        if not any_positive:
+            st.write("No diseases predicted based on the selected symptoms.")
